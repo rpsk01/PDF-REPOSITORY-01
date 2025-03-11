@@ -22,10 +22,11 @@
 
         links.forEach(link => {
             const href = link.getAttribute('href');
-            if (href.endsWith('.pdf')) {
-                const li = document.createElement('li');
+            if (href.includes('.pdf')) {
                 const fileName = decodeURIComponent(href.split('/').pop());
-                li.innerHTML = `<a href="${href}" target="_blank">${fileName}</a>`;
+                const fixedHref = href.replace(/ /g, '%20');
+                const li = document.createElement('li');
+                li.innerHTML = `<a href="${fixedHref}" target="_blank">${fileName}</a>`;
                 document.getElementById('file-list').appendChild(li);
             }
         });
@@ -36,4 +37,3 @@
 
 </body>
 </html>
-
