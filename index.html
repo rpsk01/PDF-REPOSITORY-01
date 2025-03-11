@@ -24,7 +24,8 @@
             const href = link.getAttribute('href');
             if (href.endsWith('.pdf')) {
                 const li = document.createElement('li');
-                li.innerHTML = `<a href="pdf-viewer.html?file=${href}">${href}</a>`;
+                const fileName = decodeURIComponent(href.split('/').pop());
+                li.innerHTML = `<a href="${href}" target="_blank">${fileName}</a>`;
                 document.getElementById('file-list').appendChild(li);
             }
         });
@@ -35,3 +36,4 @@
 
 </body>
 </html>
+
