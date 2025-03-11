@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My PDF Library with Key Terms</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        h1 { text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #f4f4f4; }
+        a { text-decoration: none; color: #007bff; }
+        a:hover { text-decoration: underline; }
+        iframe { width: 100px; height: 130px; border: none; }
+        .key-terms { font-size: 0.9em; color: #444; }
+    </style>
+</head>
+<body>
+    <h1>My PDF Library with Key Terms</h1>
+    <p>Welcome to my PDF collection. Click any document below to view or download it.</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>File Name</th>
+                <th>Download Link</th>
+                <th>Preview</th>
+                <th>Top Words</th>
+                <th>Top Phrases</th>
+            </tr>
+        </thead>
+        <tbody id="file-table"></tbody>
+    </table>
+
+    <script>
+        const files = [
+            'document1.pdf',
+            'document2.pdf',
+            'document3.pdf' // Add more files as needed
+        ];
+
+        const repoUrl = 'https://github.com/YOUR-USERNAME/YOUR-REPO-NAME/blob/main/';
+        const rawUrl = 'https://raw.githubusercontent.com/YOUR-USERNAME/YOUR-REPO-NAME/main/';
+        const stopWords = new Set(['the', 'and', 'of', 'in', 'to', 'for', 'is', 'it', 'that', 'he', 'she', 'which', 'was', 'were', 'on', 'by', 'with']);
+
+        async function extractText(fileUrl) {
+            const loadingTask = pdfjsLib.getDocument(fileUrl);
+            const pdf = await loadingTask.promise;
+            let text = '';
+
+            for (let i = 0; i < Math.min(pdf.numPages, 3); i++) {
+                const page = await pdf.getPage(i + 1);
+                const content = await page.getTextContent();
+                text += content.items.map(item => item.str).join(' ') + ' ';
+            }
+
+            return text;
+        }
+
+        function getTopWords(text, topN = 5) {
+            const wordCounts = {};
+            const words = text.toLowerCase().match(/\b\w{4,}\b/g);
+
+            if (!words) return [];
+
+            words.forEach(word => {
+                if (!stopWords.has(word)) {
+                    wordCounts[word] = (wordCounts[word] || 0) + 1;
+                }
+            });
+
+            return Object.entries(wordCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, topN)
+                .map(([word]) => word);
+        }
+
+        function getTopPhrases(text, topN = 5) {
+            const phrases = {};
+            const words = text.toLowerCase().split(/\s+/);
+
+            for (let i = 0; i < words.length - 2; i++) {
+                const phrase = `${words[i]} ${words[i+1]}`;
+                if (!stopWords.has(words[i]) && !stopWords.has(words[i+1])) {
+                    phrases[phrase] = (phrases[phrase] || 0) + 1;
+                }
+            }
+
+            return Object.entries(phrases)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, topN)
+                .map(([phrase]) => phrase);
+        }
+
+        async function generateTable() {
+            const tableBody = document.getElementById('file-table');
+
+            for (const file of files) {
+                const text = await extractText(`${rawUrl}${file}`);
+                const topWords = getTopWords(text).join(', ');
+                const topPhrases = getTopPhrases(text).join('; ');
+
+                const row = `
+                    <tr>
+                        <td>${file}</td>
+                        <td><a href="${repoUrl}${file}" target="_blank">View PDF</a></td>
+                        <td><iframe src="${rawUrl}${file}"></iframe></td>
+                        <td class="key-terms">${topWords}</td>
+                        <td class="key-terms">${topPhrases}</td>
+                    </tr>
+                `;
+
+                tableBody.innerHTML += row;
+            }
+        }
+
+        generateTable();
+    </script>
+</body>
+</html>
