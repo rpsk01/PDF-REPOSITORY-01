@@ -11,20 +11,15 @@
 <ul id="file-list"></ul>
 
 <script>
-    const baseURL = window.location.origin + window.location.pathname;
-
     async function loadFiles() {
-        const response = await fetch(baseURL.replace('index.html', '')); 
-        const text = await response.text();
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(text, 'text/html');
-        const links = doc.querySelectorAll('a');
+        const repoURL = 'https://api.github.com/repos/rpsk01/PDF-REPOSITORY-01/contents/';
+        const response = await fetch(repoURL);
+        const files = await response.json();
 
-        links.forEach(link => {
-            const href = link.getAttribute('href');
-            if (href.includes('.pdf')) {
-                const fileName = decodeURIComponent(href.split('/').pop());
-                const fixedHref = href.replace(/ /g, '%20');
+        files.forEach(file => {
+            if (file.name.endsWith('.pdf')) {
+                const fixedHref = file.download_url.replace(/ /g, '%20');
+                const fileName = decodeURIComponent(file.name);
                 const li = document.createElement('li');
                 li.innerHTML = `<a href="${fixedHref}" target="_blank">${fileName}</a>`;
                 document.getElementById('file-list').appendChild(li);
