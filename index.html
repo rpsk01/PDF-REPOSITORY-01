@@ -7,23 +7,25 @@
 </head>
 <body>
     <h1>PDF Repository</h1>
-    <ul>
-        <script>
-            fetch('https://api.github.com/repos/rpsk01/PDF-REPOSITORY-01/contents')
-                .then(response => response.json())
-                .then(files => {
-                    files.forEach(file => {
-                        if (file.name.endsWith('.pdf')) {
-                            const listItem = document.createElement('li');
-                            const link = document.createElement('a');
-                            link.href = `viewer.html?file=${encodeURIComponent(file.name)}`;
-                            link.textContent = file.name;
-                            listItem.appendChild(link);
-                            document.querySelector('ul').appendChild(listItem);
-                        }
-                    });
-                });
-        </script>
-    </ul>
+    <ul id="pdfList"></ul>
+
+    <script>
+        async function loadPDFs() {
+            const response = await fetch("https://api.github.com/repos/rpsk01/PDF-REPOSITORY-01/contents/");
+            const files = await response.json();
+            const pdfList = document.getElementById("pdfList");
+
+            files.forEach(file => {
+                if (file.name.endsWith(".pdf")) {
+                    let safeFileName = encodeURIComponent(file.name);
+                    let listItem = document.createElement("li");
+                    listItem.innerHTML = `<a href="viewer.html?file=${safeFileName}">${file.name}</a>`;
+                    pdfList.appendChild(listItem);
+                }
+            });
+        }
+
+        loadPDFs();
+    </script>
 </body>
 </html>
